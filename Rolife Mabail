@@ -1,0 +1,52 @@
+3 
+
+
+#include <iostream>
+#include <cstring>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+int main() {
+    int sockfd;
+    struct sockaddr_in server_addr;
+    char buffer[1024];
+    std::string skin_id = "2"; // Define the skin ID
+    std::string message = "Hello, Server! Skin ID: " + skin_id; // Include skin ID in the message
+
+    // Create a socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        std::cerr << "Error opening socket" << std::endl;
+        return 1;
+    }
+
+    // Set up the server address
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(8080); // Server port
+    if (inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr) <= 0) {
+        std::cerr << "Invalid address/ Address not supported" << std::endl;
+        return 1;
+    }
+
+    // Connect to the server
+    if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        std::cerr << "Connection Failed" << std::endl;
+        return 1;
+    }
+
+    // Send the message to the server
+    send(sockfd, message.c_str(), message.size(), 0);
+    std::cout << "Message sent to server: " << message << std::endl;
+
+    // Receive the response from the server
+    int valread = read(sockfd, buffer, 1024);
+    std::cout << "Message received from server: " << std::string(buffer, valread) << std::endl;
+
+    // Close the socket
+    close(sockfd);
+    return 0;
+}
+
